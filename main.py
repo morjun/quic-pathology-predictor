@@ -9,6 +9,7 @@ from dataset import PathologyDataset
 from model import LSTMPredictor
 from preprocess import prepare_dataset
 from datetime import datetime
+import ast
 
 # 학습 루프
 def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
@@ -39,6 +40,11 @@ def evaluate_model(model, test_loader, device):
             data, labels = data.to(device), labels.to(device)
             outputs = model(data)
             _, predicted = torch.max(outputs, 1)
+
+            comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
+            df = pd.DataFrame(comparison, columns=['predicted', 'label'])
+            print(df)
+
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     accuracy = correct / total
@@ -124,9 +130,25 @@ def main():
         lostFrame = pd.read_csv(os.path.join(full_path, lost_filename))
         throughputFrame = pd.read_csv(os.path.join(full_path, throughput_filename))
 
-        sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': bool(labels[i])})
+        sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': ast.literal_eval(labels[i])})
 
     X_train, X_test, y_train, y_test = prepare_dataset(sessions, timesteps=50)
+
+    for session in sessions:
+        print(session['label'])
+        print(session['throughputFrame'].head())
+    
+    print(f"X_train shape: {X_train.shape}")
+    # print(f"X_train : {X_train}")
+    print(f"X_test shape: {X_test.shape}")
+    # print(f"X_test : {X_test}")
+    print(f"y_train shape: {y_train.shape}")
+    # print(f"y_train: {y_train}")
+    print(f"y_test shape: {y_test.shape}")
+    # print(f"y_test: {y_test}")
+
+    overlap = set(map(tuple, X_train)) & set(map(tuple, X_test))
+    print(f"Number of overlapping samples: {len(overlap)}")
 
     # Dataset 및 DataLoader 생성
     train_dataset = PathologyDataset(X_train, y_train)

@@ -27,6 +27,7 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     spinFrame['time'] = spinFrame['time'].astype(np.float32)
     lostFrame['time'] = lostFrame['time'].astype(np.float32)
     throughputFrame['Interval start'] = throughputFrame['Interval start'].astype(np.float32)
+    # print(throughputFrame.head())
 
     # 시간 범위 결정
     total_duration = max(
@@ -44,7 +45,7 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     fixed_timesteps = pd.DataFrame({'time': time_bins[:-1]})
 
     # Throughput 데이터 합치기
-    throughputFrame['Interval Bin'] = pd.cut(throughputFrame['Interval start'], bins=time_bins)
+    throughputFrame['Interval Bin'] = pd.cut(throughputFrame['Interval start'], bins=time_bins, include_lowest=True)
     throughput_agg = throughputFrame.groupby('Interval Bin', observed = False).sum().reset_index()
     fixed_timesteps['throughput'] = (throughput_agg['All Packets'] / step_duration).astype(np.float32) #bps
 
@@ -76,12 +77,14 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     # CWnd 데이터 합치기
     cwndFrame['time Bin'] = pd.cut(cwndFrame['time'], bins=time_bins)
     cwnd_agg = cwndFrame.groupby('time Bin', observed=False).mean().reset_index()
+    cwnd_agg['cwnd'] = cwnd_agg['cwnd'].astype(np.float32).ffill()
     fixed_timesteps['cwnd'] = cwnd_agg['cwnd'].astype(np.float32)
 
     # 결측값 처리 (NaN -> 0)
     fixed_timesteps.fillna(0, inplace=True)
 
     # print(fixed_timesteps.dtypes)
+    print(fixed_timesteps.head())
 
     return fixed_timesteps.to_numpy()
 
@@ -123,6 +126,7 @@ def prepare_dataset(sessions, timesteps=50):
 
         X.append(fixed_data)
         y.append(session['label'])
+        # print(fixed_data)
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
