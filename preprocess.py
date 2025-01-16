@@ -40,7 +40,7 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     
     # 타임스텝별 데이터 프레임 생성
     time_bins = np.linspace(0, total_duration, timesteps + 1)
-    print(time_bins)
+    # print(time_bins)
     fixed_timesteps = pd.DataFrame({'time': time_bins[:-1]})
 
     # Throughput 데이터 합치기
@@ -81,7 +81,7 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     # 결측값 처리 (NaN -> 0)
     fixed_timesteps.fillna(0, inplace=True)
 
-    print(fixed_timesteps.dtypes)
+    # print(fixed_timesteps.dtypes)
 
     return fixed_timesteps.to_numpy()
 

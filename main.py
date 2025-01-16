@@ -11,11 +11,12 @@ from preprocess import prepare_dataset
 from datetime import datetime
 
 # 학습 루프
-def train_model(model, train_loader, optimizer, criterion, epochs=10):
+def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
     model.train() # 학습 모드로 전환
     for epoch in range(epochs):
         total_loss = 0
         for data, labels in train_loader:
+            data, labels = data.to(device), labels.to(device)
 
             optimizer.zero_grad()
             data = data.to(torch.float32)
@@ -29,12 +30,13 @@ def train_model(model, train_loader, optimizer, criterion, epochs=10):
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader)}")
 
 # 평가 루프
-def evaluate_model(model, test_loader):
+def evaluate_model(model, test_loader, device):
     model.eval() # evaluation 모드로 전환
     correct = 0
     total = 0
     with torch.no_grad():
         for data, labels in test_loader:
+            data, labels = data.to(device), labels.to(device)
             outputs = model(data)
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
@@ -71,7 +73,7 @@ def get_labels_from_stats(stats_path, time_datetime):
 
     stats_frame['timestamp'] = pd.to_datetime(stats_frame['time'], format='%Y-%m-%d %H:%M:%S')
     filtered_frame = stats_frame[stats_frame['timestamp'] == time_datetime]
-    print(filtered_frame)
+    # print(filtered_frame)
 
     # stats.csv 파일에서 레이블 정보 추출
     labels = filtered_frame['pathology'].values
@@ -134,7 +136,8 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # 모델 초기화
-    model = LSTMPredictor(input_size=7, hidden_size=64, output_size=2)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = LSTMPredictor(input_size=7, hidden_size=64, output_size=2, device=device).to(device)
     #input: throughput, spinfrequency, rack, fack, probe, cwnd 
     #output: label with Softmax
 
@@ -142,8 +145,8 @@ def main():
     criterion = torch.nn.CrossEntropyLoss()
 
     # 학습 및 평가 실행
-    train_model(model, train_loader, optimizer, criterion, epochs=10)
-    evaluate_model(model, test_loader)
+    train_model(model, train_loader, optimizer, criterion, device, epochs=50)
+    evaluate_model(model, test_loader, device)
 
 if __name__ == "__main__":
     main()

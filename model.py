@@ -3,13 +3,14 @@ import torch.nn as nn # nn stands for neural network
 import torch.nn.functional as F
 
 class LSTMPredictor(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size, hidden_size, output_size, device):
         super(LSTMPredictor, self).__init__()
 
         # 로그 데이터 LSTM
         self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
         self.hidden_size = hidden_size
+        self.device = device
 
     def forward(self, data): # forward: 출력값 계산
         # 로그 데이터 처리
@@ -19,7 +20,7 @@ class LSTMPredictor(nn.Module):
         data_out, _ = self.lstm(data)
         data_out = data_out[:, -1, :]
 
-        self.bn = nn.BatchNorm1d(self.hidden_size)
+        self.bn = nn.BatchNorm1d(self.hidden_size, device=self.device)
         data_out = self.bn(data_out)
 
         # output = F.relu(self.fc(data_out)) # activation function: ReLU
