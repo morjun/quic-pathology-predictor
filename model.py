@@ -8,19 +8,25 @@ class LSTMPredictor(nn.Module):
 
         # 로그 데이터 LSTM
         self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
-        self.fc = nn.Linear(hidden_size, 32)
-
-        # 병합 및 출력
-        self.fc = nn.Linear(64, output_size)
+        self.fc = nn.Linear(hidden_size, output_size)
+        self.hidden_size = hidden_size
 
     def forward(self, data): # forward: 출력값 계산
         # 로그 데이터 처리
-        data_out, _ = self.log_lstm(data)
+
+        data = data.to(torch.float32)
+
+        data_out, _ = self.lstm(data)
         data_out = data_out[:, -1, :]
-        features = F.relu(self.log_fc(data_out)) # activation function: ReLU
+
+        self.bn = nn.BatchNorm1d(self.hidden_size)
+        data_out = self.bn(data_out)
+
+        # output = F.relu(self.fc(data_out)) # activation function: ReLU
+        output = self.fc(F.relu(data_out))  # Combine ReLU and fc
 
         # 병합 및 출력
         # combined = torch.cat((log_features, packet_features), dim=1)
+        # output = self.fc(features)
 
-        output = self.fc(features)
         return output

@@ -16,7 +16,11 @@ def train_model(model, train_loader, optimizer, criterion, epochs=10):
     for epoch in range(epochs):
         total_loss = 0
         for data, labels in train_loader:
+
             optimizer.zero_grad()
+            data = data.to(torch.float32)
+            labels = labels.to(torch.long)
+
             outputs = model(data)  # Callable한 객체: 내부적으로 forward() 호출
             loss = criterion(outputs, labels)
             loss.backward()
@@ -63,10 +67,15 @@ def get_labels_from_stats(stats_path, time_datetime):
         None
     """
     stats_frame = pd.read_csv(stats_path)
-    filtered_frame = stats_frame[stats_frame['time'] == time_datetime]
+    stats_frame.columns = stats_frame.columns.str.replace('"', '')
+
+    stats_frame['timestamp'] = pd.to_datetime(stats_frame['time'], format='%Y-%m-%d %H:%M:%S')
+    filtered_frame = stats_frame[stats_frame['timestamp'] == time_datetime]
+    print(filtered_frame)
 
     # stats.csv 파일에서 레이블 정보 추출
     labels = filtered_frame['pathology'].values
+
     return labels
 
 def main():
@@ -113,7 +122,7 @@ def main():
         lostFrame = pd.read_csv(os.path.join(full_path, lost_filename))
         throughputFrame = pd.read_csv(os.path.join(full_path, throughput_filename))
 
-        sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': labels[i]})
+        sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': bool(labels[i])})
 
     X_train, X_test, y_train, y_test = prepare_dataset(sessions, timesteps=50)
 
@@ -125,7 +134,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # 모델 초기화
-    model = LSTMPredictor(input_size=6, hidden_size=64, output_size=2)
+    model = LSTMPredictor(input_size=7, hidden_size=64, output_size=2)
     #input: throughput, spinfrequency, rack, fack, probe, cwnd 
     #output: label with Softmax
 
@@ -135,3 +144,6 @@ def main():
     # 학습 및 평가 실행
     train_model(model, train_loader, optimizer, criterion, epochs=10)
     evaluate_model(model, test_loader)
+
+if __name__ == "__main__":
+    main()
