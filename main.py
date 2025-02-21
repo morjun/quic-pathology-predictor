@@ -90,53 +90,53 @@ def main():
     # 데이터 로드 및 전처리 (training, test 데이터셋 생성)
     parser = argparse.ArgumentParser(description="Show spin bit")
     parser.add_argument("--stats", "-s", help="stats.csv path", type=str, required=True)
-    parser.add_argument("file", metavar="file", type=str, nargs=1)
+    parser.add_argument("paths", metavar="paths", type=str, nargs="+")
     args = parser.parse_args()
-
-    full_path = args.file[0]
-    pcap_count = count_files_by_extension_with_pathlib(full_path, ".pcap")
-
-    full_path = os.path.relpath(full_path)
-
-    splitted_path = os.path.split(full_path) # ('...', 'l0b0d0_t0')
-
-    arg_path_parts = splitted_path[1].split("_") # ['l0b0d0', 't0']
-    parametric_path = arg_path_parts[0] # l0b0d0
-
-    time = 0
-    if len(arg_path_parts) > 1:
-        time = arg_path_parts[1] # t0
-        time = time[1:] # 0
-    time_datetime = datetime.fromtimestamp(int(time))
-
-    labels = get_labels_from_stats(args.stats, time_datetime)
 
     sessions = []
 
-    for i in range(pcap_count):
-        if i > 0:
-            spin_filename = f"{parametric_path}_{i+1}_spin.csv"
-            cwnd_filename = f"{parametric_path}_{i+1}_cwnd.csv"
-            lost_filename = f"{parametric_path}_{i+1}_lost.csv"
-            throughput_filename = f"{parametric_path}_{i+1}.csv"
-        else:
-            spin_filename = f"{parametric_path}_spin.csv"
-            cwnd_filename = f"{parametric_path}_cwnd.csv"
-            lost_filename = f"{parametric_path}_lost.csv"
-            throughput_filename = f"{parametric_path}.csv"
-        
-        spinFrame = pd.read_csv(os.path.join(full_path, spin_filename))
-        cwndFrame = pd.read_csv(os.path.join(full_path, cwnd_filename))
-        lostFrame = pd.read_csv(os.path.join(full_path, lost_filename))
-        throughputFrame = pd.read_csv(os.path.join(full_path, throughput_filename))
+    for full_path in args.paths:
+        pcap_count_per_path = count_files_by_extension_with_pathlib(full_path, ".pcap")
 
-        sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': ast.literal_eval(labels[i])})
+        full_path = os.path.relpath(full_path)
+
+        splitted_path = os.path.split(full_path) # ('...', 'l0b0d0_t0')
+
+        arg_path_parts = splitted_path[1].split("_") # ['l0b0d0', 't0']
+        parametric_path = arg_path_parts[0] # l0b0d0
+
+        time = 0
+        if len(arg_path_parts) > 1:
+            time = arg_path_parts[1] # t0
+            time = time[1:] # 0
+        time_datetime = datetime.fromtimestamp(int(time))
+
+        labels = get_labels_from_stats(args.stats, time_datetime)
+
+        for i in range(pcap_count_per_path):
+            if i > 0:
+                spin_filename = f"{parametric_path}_{i+1}_spin.csv"
+                cwnd_filename = f"{parametric_path}_{i+1}_cwnd.csv"
+                lost_filename = f"{parametric_path}_{i+1}_lost.csv"
+                throughput_filename = f"{parametric_path}_{i+1}.csv"
+            else:
+                spin_filename = f"{parametric_path}_spin.csv"
+                cwnd_filename = f"{parametric_path}_cwnd.csv"
+                lost_filename = f"{parametric_path}_lost.csv"
+                throughput_filename = f"{parametric_path}.csv"
+            
+            spinFrame = pd.read_csv(os.path.join(full_path, spin_filename))
+            cwndFrame = pd.read_csv(os.path.join(full_path, cwnd_filename))
+            lostFrame = pd.read_csv(os.path.join(full_path, lost_filename))
+            throughputFrame = pd.read_csv(os.path.join(full_path, throughput_filename))
+
+            sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': ast.literal_eval(labels[i])})
 
     X_train, X_test, y_train, y_test = prepare_dataset(sessions, timesteps=50)
 
-    for session in sessions:
-        print(session['label'])
-        print(session['throughputFrame'].head())
+    # for session in sessions:
+    #     print(session['label'])
+    #     print(session['throughputFrame'].head())
     
     print(f"X_train shape: {X_train.shape}")
     # print(f"X_train : {X_train}")
