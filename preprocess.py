@@ -62,7 +62,7 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     loss_counts = pd.crosstab(
         pd.cut(lostFrame["time"], bins=time_bins, include_lowest=True),
         lostFrame["loss"],
-        dropna=False
+        dropna=True
     ).astype(np.int32) # 길이 49
 
     print(f"loss counts: {loss_counts}")
