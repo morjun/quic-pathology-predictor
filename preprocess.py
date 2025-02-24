@@ -65,6 +65,8 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
         dropna=False
     ).astype(np.int32) # 길이 49
 
+    print(f"loss counts: {loss_counts}")
+
     # 빈 타임스텝을 0으로 채움
     loss_types = {
         QUIC_TRACE_PACKET_LOSS_RACK: "loss_rack_count",
