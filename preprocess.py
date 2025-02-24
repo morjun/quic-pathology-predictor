@@ -71,8 +71,8 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
         QUIC_TRACE_PACKET_LOSS_FACK: "loss_fack_count",
         QUIC_TRACE_PACKET_LOSS_PROBE: "loss_probe_count"
     }
-    for loss_type in loss_types.keys():
-        fixed_timesteps[loss_types[loss_type]] = loss_counts.get(loss_type, pd.Series(0, index=fixed_timesteps.index)).values
+    for loss_type, column_name in loss_types.items():
+        fixed_timesteps[column_name] = loss_counts.get(loss_type, pd.Series(0, index=loss_counts.index)).values
 
     # CWnd 데이터 합치기
     cwndFrame['time Bin'] = pd.cut(cwndFrame['time'], bins=time_bins)
