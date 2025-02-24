@@ -29,6 +29,12 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     throughputFrame['Interval start'] = throughputFrame['Interval start'].astype(np.float32)
     # print(throughputFrame.head())
 
+    rack_count = lostFrame[lostFrame['loss'] == QUIC_TRACE_PACKET_LOSS_RACK].shape[0]
+    fack_count = lostFrame[lostFrame['loss'] == QUIC_TRACE_PACKET_LOSS_FACK].shape[0]
+    probe_count = lostFrame[lostFrame['loss'] == QUIC_TRACE_PACKET_LOSS_PROBE].shape[0]
+
+    print(f"Processing data with loss count {rack_count}, {fack_count}, {probe_count}")
+
     # 시간 범위 결정
     total_duration = max(
         cwndFrame['time'].max(),
@@ -62,7 +68,7 @@ def preprocess_to_fixed_timesteps(throughputFrame, spinFrame, lostFrame, cwndFra
     loss_counts = pd.crosstab(
         pd.cut(lostFrame["time"], bins=time_bins, include_lowest=True),
         lostFrame["loss"],
-        dropna=True
+        dropna=False,
     ).astype(np.int32) # 길이 49
 
     print(f"loss counts: {loss_counts}")
