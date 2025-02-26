@@ -111,8 +111,9 @@ def prepare_dataset(sessions, timesteps=50):
     """
     X = []
     y = []
+    indices = []
 
-    for session in sessions:
+    for i, session in enumerate(sessions):
         # print(session)
         # 각 세션의 데이터를 고정된 타임스텝으로 변환
         fixed_data = preprocess_to_fixed_timesteps(
@@ -134,16 +135,19 @@ def prepare_dataset(sessions, timesteps=50):
 
         X.append(fixed_data)
         y.append(session['label'])
+        indices.append(i)
         # print(fixed_data)
     
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+    X_train, X_test, y_train, y_test, train_indices, test_indices = train_test_split(
+        X, y, indices, test_size=0.2, random_state=42
     )
 
     X_train = np.stack(X_train)
     X_test = np.stack(X_test)
     y_train = np.array(y_train)
     y_test = np.array(y_test)
+    train_indices = np.array(train_indices)
+    test_indices = np.array(test_indices)
 
     # PyTorch 텐서 변환
     return (
@@ -151,4 +155,6 @@ def prepare_dataset(sessions, timesteps=50):
         torch.tensor(X_test),
         torch.tensor(y_train, dtype=torch.long),
         torch.tensor(y_test, dtype=torch.long),
+        train_indices,
+        test_indices
     )

@@ -31,7 +31,7 @@ def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader)}")
 
 # 평가 루프
-def evaluate_model(model, test_loader, device):
+def evaluate_model(model, test_loader, device, stats_frame, test_indices):
     model.eval() # evaluation 모드로 전환
     correct = 0
     total = 0
@@ -43,7 +43,10 @@ def evaluate_model(model, test_loader, device):
             _, predicted = torch.max(outputs, 1)
 
             comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
-            df = pd.DataFrame(comparison, columns=['predicted', 'label'])
+            eval_df = pd.DataFrame(comparison, columns=['predicted', 'label'])
+            eval_df['index'] = test_indices
+            final_df = eval_df.merge(stats_frame, on='index')
+            print(final_df)
 
             # data_with_labels_and_prediction = torch.cat((data, labels.view(-1, 1), predicted.view(-1, 1)), dim=1)
             # print(data_with_labels_and_prediction)
@@ -89,7 +92,7 @@ def get_labels_from_stats(stats_path, time_datetime):
     # stats.csv 파일에서 레이블 정보 추출
     labels = filtered_frame['pathology'].values
 
-    return labels
+    return labels, filtered_frame
 
 def main():
     # 데이터 로드 및 전처리 (training, test 데이터셋 생성)
@@ -100,6 +103,7 @@ def main():
     args = parser.parse_args()
 
     sessions = []
+    stats_frame = None
 
     for full_path in args.paths:
         pcap_count_per_path = count_files_by_extension_with_pathlib(full_path, ".pcap")
@@ -117,7 +121,7 @@ def main():
             time = time[1:] # 0
         time_datetime = datetime.fromtimestamp(int(time))
 
-        labels = get_labels_from_stats(args.stats, time_datetime)
+        labels, stats_frame = get_labels_from_stats(args.stats, time_datetime)
 
         for i in range(pcap_count_per_path):
             if i > 0:
@@ -138,7 +142,7 @@ def main():
 
             sessions.append({'throughputFrame': throughputFrame, 'spinFrame': spinFrame, 'lostFrame': lostFrame, 'cwndFrame': cwndFrame, 'label': ast.literal_eval(labels[i])})
 
-    X_train, X_test, y_train, y_test = prepare_dataset(sessions, timesteps=50)
+    X_train, X_test, y_train, y_test, train_indices, test_indices = prepare_dataset(sessions, timesteps=50)
 
     # for session in sessions:
     #     print(session['label'])
@@ -174,11 +178,7 @@ def main():
 
     # 학습 및 평가 실행
     train_model(model, train_loader, optimizer, criterion, device, epochs=args.epochs)
-    result_frame = evaluate_model(model, test_loader, device)
-    X_test_frame = pd.DataFrame(X_test[0], columns=['time', 'throughput', 'spinfrequency', 'rack', 'fack', 'probe', 'cwnd'])
-    combined_frame = pd.concat([X_test_frame, result_frame], axis=1)
-
-    print(combined_frame)
+    evaluate_model(model, test_loader, device, stats_frame, test_indices)
 
 if __name__ == "__main__":
     main()
