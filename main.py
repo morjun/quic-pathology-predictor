@@ -43,7 +43,9 @@ def evaluate_model(model, test_loader, device):
 
             comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
             df = pd.DataFrame(comparison, columns=['predicted', 'label'])
-            print(df)
+            data_with_labels_and_prediction = torch.cat((data, labels.view(-1, 1), predicted.view(-1, 1)), dim=1)
+            print(data_with_labels_and_prediction)
+            # print(df)
 
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
