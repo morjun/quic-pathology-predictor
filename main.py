@@ -90,6 +90,7 @@ def main():
     # 데이터 로드 및 전처리 (training, test 데이터셋 생성)
     parser = argparse.ArgumentParser(description="Show spin bit")
     parser.add_argument("--stats", "-s", help="stats.csv path", type=str, required=True)
+    parser.add_argument("--epochs", "-e", help="Number of epochs", type=int, default=200)
     parser.add_argument("paths", metavar="paths", type=str, nargs="+")
     args = parser.parse_args()
 
