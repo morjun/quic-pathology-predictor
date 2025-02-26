@@ -23,8 +23,8 @@ class LSTMPredictor(nn.Module):
         self.bn = nn.BatchNorm1d(self.hidden_size, device=self.device)
         data_out = self.bn(data_out)
 
-        # output = F.relu(self.fc(data_out)) # activation function: ReLU
-        output = self.fc(F.relu(data_out))  # Combine ReLU and fc
+        output = F.relu(self.fc(data_out)) # activation function: ReLU
+        # output = self.fc(F.relu(data_out))  # Combine ReLU and fc
 
         # 병합 및 출력
         # combined = torch.cat((log_features, packet_features), dim=1)
