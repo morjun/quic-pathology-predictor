@@ -167,7 +167,7 @@ def main():
     criterion = torch.nn.CrossEntropyLoss()
 
     # 학습 및 평가 실행
-    train_model(model, train_loader, optimizer, criterion, device, epochs=50)
+    train_model(model, train_loader, optimizer, criterion, device, epochs=200)
     evaluate_model(model, test_loader, device)
 
 if __name__ == "__main__":
