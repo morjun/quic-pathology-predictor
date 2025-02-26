@@ -175,7 +175,7 @@ def main():
     # 학습 및 평가 실행
     train_model(model, train_loader, optimizer, criterion, device, epochs=args.epochs)
     result_frame = evaluate_model(model, test_loader, device)
-    X_test_frame = pd.DataFrame(X_test[0], columns=['throughput', 'spinfrequency', 'rack', 'fack', 'probe', 'cwnd'])
+    X_test_frame = pd.DataFrame(X_test[0], columns=['time', 'throughput', 'spinfrequency', 'rack', 'fack', 'probe', 'cwnd'])
     combined_frame = pd.concat([X_test_frame, result_frame], axis=1)
 
     print(combined_frame)
