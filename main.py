@@ -14,6 +14,7 @@ import ast
 # 학습 루프
 def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
     model.train() # 학습 모드로 전환
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.5)
     for epoch in range(epochs):
         total_loss = 0
         for data, labels in train_loader:
@@ -27,6 +28,7 @@ def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+            scheduler.step()
             total_loss += loss.item()
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader)}")
 
@@ -175,8 +177,8 @@ def main():
     train_dataset = PathologyDataset(X_train, y_train)
     test_dataset = PathologyDataset(X_test, y_test)
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
     # 모델 초기화
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
