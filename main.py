@@ -35,7 +35,7 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
     model.eval() # evaluation 모드로 전환
     correct = 0
     total = 0
-    df = None
+    eval_df = pd.DataFrame()
     with torch.no_grad():
         for data, labels in test_loader:
             data, labels = data.to(device), labels.to(device)
@@ -43,20 +43,19 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
             _, predicted = torch.max(outputs, 1)
 
             comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
-            eval_df = pd.DataFrame(comparison, columns=['predicted', 'label'])
-            eval_df['index'] = test_indices
-            final_df = eval_df.merge(stats_frame, on='index')
-            print(final_df)
-
+            eval_df = eval_df.append(pd.DataFrame(comparison, columns=['predicted', 'label']), ignore_index=True)
             # data_with_labels_and_prediction = torch.cat((data, labels.view(-1, 1), predicted.view(-1, 1)), dim=1)
             # print(data_with_labels_and_prediction)
             # print(df)
 
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+
+    eval_df['index'] = test_indices
+    final_df = eval_df.merge(stats_frame, on='index')
+    print(final_df)
     accuracy = correct / total
     print(f"Test Accuracy: {accuracy:.2f}")
-    return df
 
 def count_files_by_extension_with_pathlib(folder_path, extension):
     """
