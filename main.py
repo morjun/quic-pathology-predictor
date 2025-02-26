@@ -35,6 +35,7 @@ def evaluate_model(model, test_loader, device):
     model.eval() # evaluation 모드로 전환
     correct = 0
     total = 0
+    df = None
     with torch.no_grad():
         for data, labels in test_loader:
             data, labels = data.to(device), labels.to(device)
@@ -43,7 +44,7 @@ def evaluate_model(model, test_loader, device):
 
             comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
             df = pd.DataFrame(comparison, columns=['predicted', 'label'])
-            print(data)
+
             # data_with_labels_and_prediction = torch.cat((data, labels.view(-1, 1), predicted.view(-1, 1)), dim=1)
             # print(data_with_labels_and_prediction)
             # print(df)
@@ -52,6 +53,7 @@ def evaluate_model(model, test_loader, device):
             correct += (predicted == labels).sum().item()
     accuracy = correct / total
     print(f"Test Accuracy: {accuracy:.2f}")
+    return df
 
 def count_files_by_extension_with_pathlib(folder_path, extension):
     """
@@ -172,7 +174,11 @@ def main():
 
     # 학습 및 평가 실행
     train_model(model, train_loader, optimizer, criterion, device, epochs=args.epochs)
-    evaluate_model(model, test_loader, device)
+    result_frame = evaluate_model(model, test_loader, device)
+    X_test_frame = pd.DataFrame(X_test[0], columns=['throughput', 'spinfrequency', 'rack', 'fack', 'probe', 'cwnd'])
+    combined_frame = pd.concat([X_test_frame, result_frame], axis=1)
+
+    print(combined_frame)
 
 if __name__ == "__main__":
     main()
