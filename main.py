@@ -62,7 +62,7 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
 
     eval_df['index'] = test_indices
 
-    final_df = eval_df.merge(stats_frame, on='index')
+    final_df = eval_df.merge(stats_frame, left_on='index', right_on='index')
     print(final_df)
     accuracy = correct / total
     print(f"Test Accuracy: {accuracy:.2f}")
