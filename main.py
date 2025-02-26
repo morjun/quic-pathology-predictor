@@ -43,7 +43,7 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
             _, predicted = torch.max(outputs, 1)
 
             comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
-            eval_df = eval_df.append(pd.DataFrame(comparison, columns=['predicted', 'label']), ignore_index=True)
+            eval_df = eval_df.cat([pd.DataFrame(comparison)], ignore_index=True)
             # data_with_labels_and_prediction = torch.cat((data, labels.view(-1, 1), predicted.view(-1, 1)), dim=1)
             # print(data_with_labels_and_prediction)
             # print(df)
