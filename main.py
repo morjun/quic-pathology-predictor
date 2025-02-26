@@ -177,8 +177,8 @@ def main():
     train_dataset = PathologyDataset(X_train, y_train)
     test_dataset = PathologyDataset(X_test, y_test)
 
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # 모델 초기화
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
