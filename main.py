@@ -14,7 +14,7 @@ import ast
 # 학습 루프
 def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
     model.train() # 학습 모드로 전환
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.5)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.5)
     for epoch in range(epochs):
         total_loss = 0
         for data, labels in train_loader:
@@ -28,7 +28,7 @@ def train_model(model, train_loader, optimizer, criterion, device, epochs=50):
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
             total_loss += loss.item()
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader)}")
 
@@ -183,8 +183,10 @@ def main():
     # 모델 초기화
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = LSTMPredictor(input_size=7, hidden_size=64, output_size=2, device=device).to(device)
-    #input: throughput, spinfrequency, rack, fack, probe, cwnd 
-    #output: label with Softmax
+
+    # input: throughput, spinfrequency, rack, fack, probe, cwnd 
+    # output: label with Softmax
+    # output size 왜 2였더라?
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
