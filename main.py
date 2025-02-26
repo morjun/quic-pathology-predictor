@@ -36,6 +36,10 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
     correct = 0
     total = 0
     eval_df = pd.DataFrame()
+
+    predictions = []  # List to store predictions
+    true_labels = []  # List to store true labels
+
     with torch.no_grad():
         for data, labels in test_loader:
             data, labels = data.to(device), labels.to(device)
@@ -43,15 +47,21 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
             _, predicted = torch.max(outputs, 1)
 
             comparison = torch.stack([predicted, labels], dim=1).cpu().numpy()
-            eval_df = eval_df.cat([pd.DataFrame(comparison)], ignore_index=True)
-            # data_with_labels_and_prediction = torch.cat((data, labels.view(-1, 1), predicted.view(-1, 1)), dim=1)
-            # print(data_with_labels_and_prediction)
-            # print(df)
+            # Append predicted and actual labels
+
+            predictions.extend(predicted.cpu().numpy())  # Collect predictions
+            true_labels.extend(labels.cpu().numpy())     # Collect true labels
 
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
+    # Add predictions and true labels to the eval dataframe
+    eval_df['predicted'] = predictions
+
+    eval_df['label'] = true_labels
+
     eval_df['index'] = test_indices
+
     final_df = eval_df.merge(stats_frame, on='index')
     print(final_df)
     accuracy = correct / total
