@@ -62,7 +62,7 @@ def evaluate_model(model, test_loader, device, stats_frame, test_indices):
 
     eval_df['index'] = test_indices
 
-    final_df = eval_df.merge(stats_frame, left_on='index', right_on='index', how = 'left')
+    final_df = eval_df.merge(stats_frame, left_on='new_index', right_on='index', how = 'left')
     print(final_df)
     accuracy = correct / total
     print(f"Test Accuracy: {accuracy:.2f}")
@@ -100,6 +100,7 @@ def get_labels_from_stats(stats_path, time_datetime):
 
     # stats.csv 파일에서 레이블 정보 추출
     labels = filtered_frame['pathology'].values
+    filtered_frame['new_index'] = range(0, len(filtered_frame))
 
     return labels, filtered_frame
 
