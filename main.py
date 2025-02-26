@@ -95,7 +95,7 @@ def get_labels_from_stats(stats_path, time_datetime):
     stats_frame.columns = stats_frame.columns.str.replace('"', '')
 
     stats_frame['timestamp'] = pd.to_datetime(stats_frame['time'], format='%Y-%m-%d %H:%M:%S')
-    filtered_frame = stats_frame[stats_frame['timestamp'] == time_datetime]
+    filtered_frame = stats_frame[stats_frame['timestamp'] == time_datetime].copy()
     # print(filtered_frame)
 
     # stats.csv 파일에서 레이블 정보 추출
